@@ -9,12 +9,8 @@
 - electron desktop app
 - use pnpm
 
-# backupbucket
-> my personal backup solution using AWS S3 buckets
 the most cost-effective and privacy-respecting
-
 I use this script to backup my personal data to AWS S3 buckets, for just money amount
-This is by far the most cost-effective and versatile personal backup solution. 
 ENCRYPTED AND COMPRESSED WITH Mounting in linux
 
 <!--ts-->
