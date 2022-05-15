@@ -5,7 +5,7 @@
 - Use Cloudflare worker password protection https://www.maxivanov.io/how-to-password-protect-your-website-with-cloudflare-workers/
 - NextAuth second authentication step
 - s3fs mounting as linux drive
-- encryption
+- on-device encryption
 - electron desktop app
 - use pnpm
 
