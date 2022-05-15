@@ -1,6 +1,9 @@
 # Toss
-> S3 based personal storage service
+> S3 based personal storage and file sharing service
 
+## Features
+- Password protected file sharing
+- Bucket explorer
 
 - Use Cloudflare worker password protection https://www.maxivanov.io/how-to-password-protect-your-website-with-cloudflare-workers/
 - NextAuth second authentication step
