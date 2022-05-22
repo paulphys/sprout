@@ -1,6 +1,6 @@
 🚧 a work in progress 🚧
 
-# Toss
+# 🌱 Sprout
 > S3 based personal storage and file sharing service
 
 ## Features
