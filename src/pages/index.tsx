@@ -1,57 +1,115 @@
-import { Box, Center } from "@chakra-ui/react";
-import {
-  FormControl,
-  Icon,
-  Input,
-  InputGroup,
-  InputLeftElement,
-} from "@chakra-ui/react";
-import { ChangeEventHandler, useRef, useState } from "react";
-import { BiImage } from "react-icons/bi";
+import { Box, Flex, Grid, Image, Skeleton, Tag, Text, useColorModeValue } from "@chakra-ui/react";
+import OptionsPopover from "@components/popups/OptionsPopover";
+import AddDriveButton from "@components/ui/AddDriveButton";
+import Navbar from "@components/ui/Navbar";
+import useUser from "@util/hooks/useUser";
+import { Drive } from "@prisma/client";
+import { PROVIDERS } from "@util/globals";
+import { deleteDrive } from "@util/helpers";
+import { Provider } from "@util/types";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import React from "react";
+import useSWR from "swr";
+import { X } from "tabler-icons-react";
 
-export default function Home() {
-  const inputRef = useRef() as React.MutableRefObject<HTMLInputElement>;
-  const [placeholder, setPlaceholder] = useState<string>();
+const Dashboard = () => {
+	const router = useRouter();
+	const { user } = useUser({ redirectTo: "/login" });
+	const { data, isValidating, mutate } = useSWR<Drive[]>(`/api/drive`);
 
-  const handleSubmit: ChangeEventHandler = async (e) => {
-    if (!inputRef.current.files || inputRef.current.files.length == 0) return;
-    setPlaceholder("Uploading...");
+	const optionProps = {
+		p: 2,
+		cursor: "pointer",
+		_hover: { backgroundColor: useColorModeValue("gray.100", "rgba(237, 242, 247, 0.1)") },
+	};
 
-    const formData = new FormData();
-    formData.append("file", inputRef.current.files[0]);
+	return (
+		<>
+			<Head>
+				<title>Dashboard</title>
+				<meta charSet="utf-8" />
+			</Head>
+			<Flex flexDir="column">
+				<Navbar />
+				<Box mx={["4", "8", "12"]}>
+					<Text as="h1" fontSize="3xl" fontWeight="600" my="3">
+						Your Drives
+					</Text>
+					<Grid
+						templateColumns={[
+							"repeat(auto-fill, minmax(140px, 1fr))",
+							"repeat(auto-fill, minmax(160px, 1fr))",
+							"repeat(auto-fill, minmax(160px, 1fr))",
+						]}
+						gap={[2, 6, 6]}
+					>
+						{!data && isValidating ? (
+							<>
+								<Skeleton h="140px" w="full" borderRadius="lg" />
+								<Skeleton h="140px" w="full" borderRadius="lg" />
+								<Skeleton h="140px" w="full" borderRadius="lg" />
+								<Skeleton h="140px" w="full" borderRadius="lg" />
+							</>
+						) : (
+							data?.map((drive) => (
+								<Flex
+									key={drive.id}
+									cursor="pointer"
+									direction="column"
+									align="center"
+									borderRadius="lg"
+									boxShadow="5.5px 4.2px 7.8px -1.7px rgba(0, 0, 0, 0.1)"
+									w="100%"
+									h="140px"
+									borderWidth="1px"
+									transition="ease-in-out 0.1s"
+									className="hoverAnim"
+								>
+									<Box flex={1} onClick={() => router.push(`/drives/${drive.id}`)} w="full" mt="2">
+										<Image
+											src={PROVIDERS.filter((p) => p.id === drive.type)[0].logo}
+											maxW="90px"
+											m="auto"
+										/>
+									</Box>
+									<Flex p="2" w="full" justify="space-between" alignItems="center">
+										<Text
+											onClick={() => router.push(`/drives/${drive.id}`)}
+											flex="1"
+											isTruncated={true}
+											as="p"
+											fontSize="sm"
+											align="left"
+											px="2"
+										>
+											{drive.name}
+										</Text>
+										<OptionsPopover header={drive.name}>
+											<Flex alignItems="stretch" flexDirection="column">
+												<Flex
+													{...optionProps}
+													onClick={async (e) => {
+														e.stopPropagation();
+														await deleteDrive(Provider[drive.type], drive.id);
+														mutate(data.filter((b) => b.id !== drive.id));
+													}}
+												>
+													<X />
+													<Text ml="2">Delete Drive</Text>
+												</Flex>
+											</Flex>
+										</OptionsPopover>
+									</Flex>
+								</Flex>
+							))
+						)}
+						<AddDriveButton />
+					</Grid>
+				</Box>
+			</Flex>
+		</>
+	);
+};
 
-    const res = await fetch("/api/upload", {
-      method: "post",
-      body: formData,
-    });
-    location.href = `/${(await res.json()).fileName}`;
-  };
-
-  return (
-    <Center h="100vh" w="full" bgColor="gray.900">
-      <Box boxShadow="2xl" borderRadius={10} bgColor="gray.800">
-        <FormControl>
-          <InputGroup>
-            <InputLeftElement pointerEvents="none">
-              <Icon as={BiImage} color="white" />
-            </InputLeftElement>
-            <input
-              type="file"
-              accept="image/*"
-              name="file"
-              ref={inputRef}
-              style={{ display: "none" }}
-              onChange={handleSubmit}
-            ></input>
-            <Input
-              placeholder={placeholder || "Select image"}
-              onClick={() => inputRef?.current.click()}
-              readOnly={true}
-              cursor="default"
-            />
-          </InputGroup>
-        </FormControl>
-      </Box>
-    </Center>
-  );
-}
+export default Dashboard;
